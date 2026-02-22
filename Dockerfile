@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir \
 COPY src/ ./src/
 RUN touch src/__init__.py
 
-# Pre-warm matplotlib font cache
+# Verify matplotlib works headless
 RUN python3 -c "import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt; print('matplotlib OK')"
 
 ENV MCP_TRANSPORT=streamable-http
