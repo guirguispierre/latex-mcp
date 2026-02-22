@@ -1,0 +1,17 @@
+[project]
+name = "latex-mcp"
+version = "1.0.0"
+description = "MCP server that renders LaTeX expressions to PNG images — for use with AI assistants like Poke"
+requires-python = ">=3.12"
+dependencies = [
+    "fastmcp>=2.11.3",
+    "matplotlib>=3.9.0",
+    "pydantic>=2.11.0",
+]
+
+[project.scripts]
+latex-mcp = "src.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
