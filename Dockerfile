@@ -1,6 +1,5 @@
 FROM python:3.12-slim
 
-# Install system dependencies for matplotlib
 RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libpng-dev \
@@ -10,18 +9,17 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Install Python deps
-COPY pyproject.toml ./
 RUN pip install --no-cache-dir \
     "fastmcp>=2.11.3" \
     "matplotlib>=3.9.0" \
-    "pydantic>=2.11.0"
+    "pydantic>=2.11.0" \
+    "uvicorn>=0.35.0"
 
-# Copy source
 COPY src/ ./src/
-
-# Create __init__.py so src is a package
 RUN touch src/__init__.py
+
+# Pre-warm matplotlib font cache
+RUN python3 -c "import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt; print('matplotlib OK')"
 
 ENV MCP_TRANSPORT=streamable-http
 ENV HOST=0.0.0.0

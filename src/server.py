@@ -8,8 +8,8 @@ import urllib.request
 
 import matplotlib
 import matplotlib.pyplot as plt
+import uvicorn
 from fastmcp import FastMCP
-from typing import Optional
 
 matplotlib.use("Agg")
 
@@ -30,7 +30,6 @@ CODECOGS_BASE = "https://latex.codecogs.com/png.image"
 
 
 def _render_to_png_bytes(latex: str, font_size: int, dpi: int, bg_color: str, text_color: str, padding: float) -> bytes:
-    """Render LaTeX string to PNG bytes via matplotlib."""
     expression = f"${latex}$"
     fig = plt.figure(figsize=(0.01, 0.01))
     fig.patch.set_facecolor("none" if bg_color == "transparent" else bg_color)
@@ -51,7 +50,6 @@ def _render_to_png_bytes(latex: str, font_size: int, dpi: int, bg_color: str, te
 
 
 def _build_codecogs_url(latex: str, style: str = r"\dpi{180}\bg{white}\color{black}") -> str:
-    """Build a CodeCogs hosted image URL."""
     styled = f"{style}?{latex}"
     encoded = urllib.parse.quote(styled, safe=r"\{}[]()^_.*+-=/<>|!@#%&,;:'\"")
     return f"{CODECOGS_BASE}/{encoded}"
@@ -59,13 +57,7 @@ def _build_codecogs_url(latex: str, style: str = r"\dpi{180}\bg{white}\color{bla
 
 @mcp.tool(
     name="render_latex",
-    annotations={
-        "title": "Render LaTeX to PNG",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations={"title": "Render LaTeX to PNG", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
 )
 async def render_latex(
     latex: str,
@@ -77,19 +69,18 @@ async def render_latex(
 ) -> str:
     """Render a LaTeX expression and return a base64-encoded PNG image.
 
-    Call this to show a math equation as a clean rendered image.
-    Do NOT wrap latex in dollar signs — the server adds them automatically.
+    Do NOT wrap latex in dollar signs — added automatically.
 
     Args:
-        latex: The LaTeX expression (e.g. 'x^2 + y^2 = z^2'). No $ delimiters.
-        font_size: Font size in points (default 18, range 8-48).
-        dpi: Image resolution (default 180, range 72-600).
-        bg_color: Background color — 'white' or 'transparent'.
+        latex: LaTeX expression e.g. 'x^2 + y^2 = z^2'. No $ delimiters.
+        font_size: Font size in points (default 18).
+        dpi: Image resolution (default 180).
+        bg_color: 'white' or 'transparent'.
         text_color: Equation color (default 'black').
-        padding: Padding around equation in inches (default 0.3).
+        padding: Padding in inches (default 0.3).
 
     Returns:
-        JSON with: base64_png, data_uri, latex, size_kb, success
+        JSON with base64_png, data_uri, latex, size_kb, success.
     """
     try:
         logger.info(f"render_latex: {latex[:80]}")
@@ -104,19 +95,12 @@ async def render_latex(
         })
     except Exception as e:
         logger.error(f"render_latex failed: {e}")
-        return json.dumps({"success": False, "error": str(e),
-                           "hint": "Check LaTeX syntax — unmatched braces are common."})
+        return json.dumps({"success": False, "error": str(e), "hint": "Check LaTeX syntax."})
 
 
 @mcp.tool(
     name="get_image_url",
-    annotations={
-        "title": "Get Hosted LaTeX Image URL",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True,
-    },
+    annotations={"title": "Get Hosted LaTeX Image URL", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True},
 )
 async def get_image_url(
     latex: str,
@@ -124,15 +108,15 @@ async def get_image_url(
 ) -> str:
     """Get a publicly-hosted URL for a rendered LaTeX image via CodeCogs.
 
-    Best tool for iMessage sharing. iOS renders the URL as an inline image automatically.
+    Best for iMessage — iOS renders the URL as an inline image automatically.
     Do NOT wrap latex in dollar signs.
 
     Args:
-        latex: The LaTeX expression (e.g. 'x = 3'). No $ delimiters.
-        style: CodeCogs style string controlling dpi, background and color.
+        latex: LaTeX expression e.g. 'x = 3'. No $ delimiters.
+        style: CodeCogs style string for dpi/background/color.
 
     Returns:
-        JSON with: image_url, latex, url_reachable, instructions
+        JSON with image_url, latex, url_reachable, instructions.
     """
     try:
         logger.info(f"get_image_url: {latex[:80]}")
@@ -156,13 +140,7 @@ async def get_image_url(
 
 @mcp.tool(
     name="render_solution",
-    annotations={
-        "title": "Render Full Math Solution",
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": True,
-    },
+    annotations={"title": "Render Full Math Solution", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True},
 )
 async def render_solution(
     problem_description: str,
@@ -173,22 +151,20 @@ async def render_solution(
 ) -> str:
     """Render a complete step-by-step math solution as a PNG image.
 
-    PRIMARY tool to call after solving a math problem from a photo.
-    Renders each step and the final answer into one clean image.
-    Returns a hosted URL (for iMessage) AND a base64 PNG (full steps).
-
-    Do NOT wrap any latex strings in dollar signs.
+    PRIMARY tool after solving a math problem from a photo.
+    Returns hosted URL (for iMessage) AND base64 PNG (full steps).
+    Do NOT wrap any latex in dollar signs.
 
     Args:
-        problem_description: Plain-English description e.g. 'Solve for x: 2x + 4 = 10'
-        steps_latex: List of LaTeX strings, one per step e.g. ['2x+4=10', '2x=6', 'x=3']
-        final_answer_latex: LaTeX for the final answer only e.g. 'x = 3'
+        problem_description: e.g. 'Solve for x: 2x + 4 = 10'
+        steps_latex: List of LaTeX per step e.g. ['2x+4=10', '2x=6', 'x=3']
+        final_answer_latex: Final answer LaTeX e.g. 'x = 3'
         font_size: Font size in points (default 16).
         dpi: Image resolution (default 180).
 
     Returns:
-        JSON with: image_url (hosted, for iMessage), base64_png (full steps),
-        data_uri, steps_count, final_answer, size_kb, message
+        JSON with image_url (hosted, for iMessage), base64_png (full steps),
+        data_uri, steps_count, final_answer, size_kb, message.
     """
     try:
         logger.info(f"render_solution: {len(steps_latex)} steps, answer={final_answer_latex}")
@@ -216,13 +192,11 @@ async def render_solution(
         ans_ax.text(0.22, 0.5, f"${final_answer_latex}$", transform=ans_ax.transAxes,
                     fontsize=font_size + 2, color="#003399", va="center", fontweight="bold")
 
-        fig.suptitle(problem_description, fontsize=font_size - 2, color="#333333",
-                     y=1.01, style="italic")
+        fig.suptitle(problem_description, fontsize=font_size - 2, color="#333333", y=1.01, style="italic")
         fig.tight_layout()
 
         buf = io.BytesIO()
-        fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight",
-                    facecolor="white", pad_inches=0.25)
+        fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight", facecolor="white", pad_inches=0.25)
         plt.close(fig)
         buf.seek(0)
         png_bytes = buf.read()
@@ -254,10 +228,14 @@ def main() -> None:
     host = os.environ.get("HOST", "0.0.0.0")
     port = int(os.environ.get("PORT", "8000"))
     logger.info(f"Starting latex_mcp | transport={transport} | {host}:{port}")
+
     if transport == "streamable-http":
-        mcp.run(transport="streamable-http", host=host, port=port)
+        # Get the ASGI app from FastMCP and serve it via uvicorn directly
+        app = mcp.http_app(transport="streamable-http")
+        uvicorn.run(app, host=host, port=port)
     elif transport == "sse":
-        mcp.run(transport="sse", host=host, port=port)
+        app = mcp.http_app(transport="sse")
+        uvicorn.run(app, host=host, port=port)
     else:
         mcp.run(transport="stdio")
 
