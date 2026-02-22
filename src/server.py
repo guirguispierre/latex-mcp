@@ -481,16 +481,14 @@ async def check_latex_syntax(latex: str) -> str:
 def main():
     transport = os.environ.get("MCP_TRANSPORT", "streamable-http")
     host = os.environ.get("HOST", "0.0.0.0")
-    port = int(os.environ.get("PORT", "8000"))
+    port = os.environ.get("PORT", "8000")
 
-    logger.info("Starting latex_mcp server | transport=%s host=%s port=%d", transport, host, port)
+    # FastMCP reads host/port via FASTMCP_HOST / FASTMCP_PORT env vars
+    os.environ["FASTMCP_HOST"] = host
+    os.environ["FASTMCP_PORT"] = str(port)
 
-    if transport == "streamable-http":
-        mcp.run(transport="streamable-http", host=host, port=port)
-    elif transport == "sse":
-        mcp.run(transport="sse", host=host, port=port)
-    else:
-        mcp.run(transport="stdio")
+    logger.info("Starting latex_mcp | transport=%s host=%s port=%s", transport, host, port)
+    mcp.run(transport=transport)
 
 
 if __name__ == "__main__":
