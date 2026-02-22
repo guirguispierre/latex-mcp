@@ -1,7 +1,8 @@
 [project]
 name = "latex-mcp"
 version = "1.0.0"
-description = "MCP server that renders LaTeX expressions to PNG images — for use with AI assistants like Poke"
+description = "MCP server that renders LaTeX math expressions into PNG images for sharing in iMessage and other apps"
+readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "fastmcp>=2.11.3",

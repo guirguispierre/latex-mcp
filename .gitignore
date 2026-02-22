@@ -1,9 +1,10 @@
 __pycache__/
 *.pyc
 *.pyo
-.env
 .venv/
 venv/
 dist/
+build/
 *.egg-info/
+.env
 .DS_Store

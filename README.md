@@ -1,41 +1,28 @@
 # latex-mcp 🧮
 
-An MCP server that converts LaTeX math expressions into clean PNG images.
+An MCP server that renders LaTeX math expressions into beautiful PNG images — built for AI assistants like Poke that solve math problems from photos.
 
-Built for use with AI assistants like **Poke** — when the AI solves a math problem,
-it calls this server to render the solution as a beautiful image, then sends it back
-via iMessage or any messaging platform.
+## How It Works
+
+```
+User sends photo of math problem
+→ AI (Poke) solves it
+→ AI calls this MCP server with the LaTeX solution
+→ Server renders it into a clean PNG image
+→ AI sends the image URL back in iMessage
+```
 
 ## Tools
 
+### `render_solution` ⭐ (Primary tool)
+Renders a full step-by-step solution with highlighted final answer.
+Returns both a hosted image URL (for iMessage) and a base64 PNG.
+
+### `get_image_url`
+Returns a hosted CodeCogs URL for any LaTeX expression — iOS renders it inline in iMessage.
+
 ### `render_latex`
-Render a single LaTeX expression to a PNG image.
-
-```json
-{
-  "latex": "$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$",
-  "theme": "light",
-  "dpi": 150
-}
-```
-
-Returns `data_uri` (embed in HTML) and `base64` (attach as image).
-
-### `render_solution`
-Render a full multi-step solution as a stacked image.
-
-```json
-{
-  "steps": [
-    {"label": "Problem", "latex": "x^2 - 5x + 6 = 0"},
-    {"label": "Factor",  "latex": "(x-2)(x-3) = 0"},
-    {"label": "Answer",  "latex": "x = 2 \\text{ or } x = 3"}
-  ]
-}
-```
-
-### `check_latex_syntax`
-Validate LaTeX before rendering — returns warnings and errors.
+Renders LaTeX to a base64-encoded PNG for embedding.
 
 ## MCP Endpoint
 
@@ -43,7 +30,7 @@ Validate LaTeX before rendering — returns warnings and errors.
 https://latex-mcp.onrender.com/mcp
 ```
 
-## Add to Poke / Claude Desktop
+## Connect to Poke / Claude Desktop
 
 ```json
 {
@@ -56,9 +43,19 @@ https://latex-mcp.onrender.com/mcp
 }
 ```
 
-## Local Development
+## Example Usage
 
-```bash
-pip install fastmcp matplotlib pydantic
-MCP_TRANSPORT=streamable-http python3 -m src.server
+When Poke solves `2x + 4 = 10`, it should call:
+
+```json
+{
+  "tool": "render_solution",
+  "params": {
+    "problem_description": "Solve for x: 2x + 4 = 10",
+    "steps_latex": ["2x + 4 = 10", "2x = 10 - 4", "2x = 6", "x = \\frac{6}{2}"],
+    "final_answer_latex": "x = 3"
+  }
+}
 ```
+
+Returns an `image_url` to send directly in iMessage. 🎉
