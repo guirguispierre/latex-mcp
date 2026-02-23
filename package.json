@@ -1,0 +1,21 @@
+{
+  "name": "latex-mcp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "agents": "^0.5.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260302.0",
+    "wrangler": "^4.67.0"
+  }
+}
